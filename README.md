@@ -1,4 +1,4 @@
-# Discord-Reaction-Role-Bot
+# Discord-Reaction-Information-Puller (WIP)
 This is a free open source easy to use code for a Discord reaction role bot!
 
 
