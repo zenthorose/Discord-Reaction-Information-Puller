@@ -66,9 +66,9 @@ client.on('interactionCreate', async interaction => {
 client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.message.partial) await reaction.message.fetch();
     if (reaction.partial) await reaction.fetch();
-    if (user.bot) return;
+    if (user.bot) return; // Ignore bot's own reactions
     if (!reaction.message.guild) return;
-    // if (reaction.message.channel.id == channel) {
+
     const post = reactionPostsManager.findPostByMessageId(reaction.message.id);
     if (post) {
         if (reaction.emoji.name === MaleEmoji) {
@@ -83,16 +83,14 @@ client.on('messageReactionAdd', async (reaction, user) => {
         }
     }
     console.log(reactionPostsManager.getAllPosts());
-    // }
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
     if (reaction.message.partial) await reaction.message.fetch();
     if (reaction.partial) await reaction.fetch();
-    if (user.bot) return;
+    if (user.bot) return; // Ignore bot's own reactions
     if (!reaction.message.guild) return;
 
-    // const post = reactionPosts.find(post => post.messageId === reaction.message.id);
     const post = reactionPostsManager.findPostByMessageId(reaction.message.id);
     if (post) {
         if (reaction.emoji.name === MaleEmoji) {
@@ -125,7 +123,7 @@ const calculateTotalReactions = (post) => {
     return { totalMaleReactions, totalFemaleReactions };
 };
 
-client.on('messageCreate', message => {
+client.on('messageCreate', async message => {
     if (message.content.startsWith('!total')) {
         const splitMessage = message.content.split(' ');
         if (splitMessage.length > 1) {
@@ -148,6 +146,41 @@ client.on('messageCreate', message => {
         }
     }
 
+    if (message.content.startsWith('!reactions')) {
+        const splitMessage = message.content.split(' ');
+        if (splitMessage.length > 1) {
+            const messageId = splitMessage[1];
+            try {
+                const targetMessage = await message.channel.messages.fetch(messageId);
+                const reactions = targetMessage.reactions.cache;
+
+                if (reactions.size > 0) {
+                    const embed = new EmbedBuilder()
+                        .setColor('#17b111')
+                        .setTitle(`Reactions for message ID ${messageId}`)
+                        .setTimestamp();
+
+                    for (const reaction of reactions.values()) {
+                        const users = await reaction.users.fetch();
+                        const userList = users
+                            .filter(user => user.id !== client.user.id) // Ignore bot's own reactions
+                            .map(user => user.username)
+                            .join(', ');
+                        embed.addFields({ name: `Emoji: ${reaction.emoji.name}`, value: userList || 'No users' });
+                    }
+
+                    message.channel.send({ embeds: [embed] });
+                } else {
+                    message.channel.send(`No reactions found for message ID ${messageId}.`);
+                }
+            } catch (error) {
+                console.error(error);
+                message.channel.send(`Failed to fetch reactions for message ID ${messageId}.`);
+            }
+        } else {
+            message.channel.send(`Usage: !reactions <messageId>`);
+        }
+    }
 
     if (message.content === '!ping') {
         message.channel.send('Pong!');
@@ -160,11 +193,16 @@ client.on('messageCreate', message => {
             .setDescription(`Once reacting you will gain your roles!\n\n${MaleEmoji} for ${MaleName}\n${FemaleEmoji} for ${FemaleName}\n`)
             .setTimestamp();
 
-        message.channel.send({ embeds: [exampleEmbed] }).then(msg => {
-            msg.react(MaleEmoji);
-            msg.react(FemaleEmoji);
-            reactionPostsManager.addPost({ channelId: msg.channel.id, messageId: msg.id, embedId: exampleEmbed.id, reactions: [MaleEmoji, FemaleEmoji] });
+        message.channel.send({ embeds: [exampleEmbed] }).then(async msg => {
+            reactionPostsManager.addPost({ channelId: msg.channel.id, messageId: msg.id, embedId: exampleEmbed.id, reactions: [] });
             console.log(`Added new reaction post: ${msg.id}`);
+            console.log(reactionPostsManager.getAllPosts());
+
+            // Add a slight delay before adding the bot's reactions
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await msg.react(MaleEmoji);
+            await msg.react(FemaleEmoji);
+            console.log(`Bot reacted to message: ${msg.id}`);
         });
     }
 });
