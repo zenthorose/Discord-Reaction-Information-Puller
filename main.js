@@ -19,9 +19,10 @@ const fs = require('fs');
 client.commands = new Collection();
 const botToken = process.env.BOT_TOKEN;
 
-const { MaleEmoji, MaleRole, FemaleEmoji, FemaleRole, MaleName, FemaleName } = require('./config.json');
 const ReactionPostsManager = require('./reactionPosts');
 const reactionPostsManager = new ReactionPostsManager();
+
+const { MaleEmoji, MaleRole, FemaleEmoji, FemaleRole, MaleName, FemaleName } = require('./config.json');
 
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -32,6 +33,24 @@ for (const file of commandFiles) {
         console.error(`Command file ${file} is missing a valid command structure.`);
     }
 }
+
+
+
+const calculateTotalReactions = (post) => {
+    let totalMaleReactions = 0;
+    let totalFemaleReactions = 0;
+    post.reactions.forEach(reaction => {
+        if (reaction === MaleEmoji) {
+            totalMaleReactions++;
+        }
+        if (reaction === FemaleEmoji) {
+            totalFemaleReactions++;
+        }
+    });
+    return { totalMaleReactions, totalFemaleReactions };
+};
+
+
 
 client.once('ready', async () => {
     console.log(`Bot is online!`);
@@ -49,6 +68,12 @@ client.once('ready', async () => {
     }
 });
 
+
+
+
+
+
+
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
@@ -62,6 +87,10 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 });
+
+
+
+
 
 client.on('messageReactionAdd', async (reaction, user) => {
     if (reaction.message.partial) await reaction.message.fetch();
@@ -84,6 +113,12 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
     console.log(reactionPostsManager.getAllPosts());
 });
+
+
+
+
+
+
 
 client.on('messageReactionRemove', async (reaction, user) => {
     if (reaction.message.partial) await reaction.message.fetch();
@@ -109,21 +144,15 @@ client.on('messageReactionRemove', async (reaction, user) => {
     console.log(reactionPostsManager.getAllPosts());
 });
 
-const calculateTotalReactions = (post) => {
-    let totalMaleReactions = 0;
-    let totalFemaleReactions = 0;
-    post.reactions.forEach(reaction => {
-        if (reaction === MaleEmoji) {
-            totalMaleReactions++;
-        }
-        if (reaction === FemaleEmoji) {
-            totalFemaleReactions++;
-        }
-    });
-    return { totalMaleReactions, totalFemaleReactions };
-};
+
+
+
+
 
 client.on('messageCreate', async message => {
+
+
+    
     if (message.content.startsWith('!total')) {
         const splitMessage = message.content.split(' ');
         if (splitMessage.length > 1) {
@@ -145,6 +174,11 @@ client.on('messageCreate', async message => {
             });
         }
     }
+
+
+
+
+
 
     if (message.content.startsWith('!reactions')) {
         const splitMessage = message.content.split(' ');
@@ -182,9 +216,19 @@ client.on('messageCreate', async message => {
         }
     }
 
+
+
+
+
+
     if (message.content === '!ping') {
         message.channel.send('Pong!');
     }
+
+
+
+
+
 
     if (message.content === '!reactionrole') {
         const exampleEmbed = new EmbedBuilder()
