@@ -20,8 +20,8 @@ client.commands = new Collection();
 const botToken = process.env.BOT_TOKEN;
 
 const { MaleEmoji, MaleRole, FemaleEmoji, FemaleRole, MaleName, FemaleName } = require('./config.json');
-const reactionPosts = require('./reactionPosts');
-
+const ReactionPostsManager = require('./reactionPosts');
+const reactionPostsManager = new ReactionPostsManager();
 
 const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -56,7 +56,7 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     try {
-        await command.execute(interaction, client);
+        await command.execute(interaction, reactionPostsManager);
     } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -69,17 +69,20 @@ client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
     if (!reaction.message.guild) return;
     // if (reaction.message.channel.id == channel) {
-    const post = reactionPosts.find(post => post.messageId === reaction.message.id);
+    const post = reactionPostsManager.findPostByMessageId(reaction.message.id);
     if (post) {
         if (reaction.emoji.name === MaleEmoji) {
             await reaction.message.guild.members.cache.get(user.id).roles.add(MaleRole);
             post.reactions.push(MaleEmoji);
+            console.log(`Added MaleEmoji reaction to post: ${reaction.message.id}`);
         }
         if (reaction.emoji.name === FemaleEmoji) {
             await reaction.message.guild.members.cache.get(user.id).roles.add(FemaleRole);
             post.reactions.push(FemaleEmoji);
+            console.log(`Added FemaleEmoji reaction to post: ${reaction.message.id}`);
         }
     }
+    console.log(reactionPostsManager.getAllPosts());
     // }
 });
 
@@ -89,20 +92,23 @@ client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
     if (!reaction.message.guild) return;
 
-    const post = reactionPosts.find(post => post.messageId === reaction.message.id);
+    // const post = reactionPosts.find(post => post.messageId === reaction.message.id);
+    const post = reactionPostsManager.findPostByMessageId(reaction.message.id);
     if (post) {
         if (reaction.emoji.name === MaleEmoji) {
             await reaction.message.guild.members.cache.get(user.id).roles.remove(MaleRole);
             const index = post.reactions.indexOf(MaleEmoji);
             if (index > -1) post.reactions.splice(index, 1);
+            console.log(`Removed MaleEmoji reaction from post: ${reaction.message.id}`);
         }
         if (reaction.emoji.name === FemaleEmoji) {
             await reaction.message.guild.members.cache.get(user.id).roles.remove(FemaleRole);
             const index = post.reactions.indexOf(FemaleEmoji);
             if (index > -1) post.reactions.splice(index, 1);
+            console.log(`Removed FemaleEmoji reaction from post: ${reaction.message.id}`);
         }
     }
-
+    console.log(reactionPostsManager.getAllPosts());
 });
 
 const calculateTotalReactions = (post) => {
@@ -124,7 +130,8 @@ client.on('messageCreate', message => {
         const splitMessage = message.content.split(' ');
         if (splitMessage.length > 1) {
             const postId = splitMessage[1];
-            const post = reactionPosts.find(post => post.messageId === postId);
+            // const post = reactionPosts.find(post => post.messageId === postId);
+            const post = reactionPostsManager.findPostByMessageId(postId);
             if (post) {
                 const { totalMaleReactions, totalFemaleReactions } = calculateTotalReactions(post);
                 message.channel.send(`Post in channel ${post.channelId} with message ID ${post.messageId} has ${totalMaleReactions} male reactions and ${totalFemaleReactions} female reactions.`);
@@ -133,7 +140,8 @@ client.on('messageCreate', message => {
             }
         } else {
             message.channel.send(`Total reactions for each post:`);
-            reactionPosts.forEach(post => {
+            // reactionPosts.forEach(post => {
+                reactionPostsManager.getAllPosts().forEach(post => {
                 const { totalMaleReactions, totalFemaleReactions } = calculateTotalReactions(post);
                 message.channel.send(`Post in channel ${post.channelId} with message ID ${post.messageId} has ${totalMaleReactions} male reactions and ${totalFemaleReactions} female reactions.`);
             });
@@ -155,11 +163,9 @@ client.on('messageCreate', message => {
         message.channel.send({ embeds: [exampleEmbed] }).then(msg => {
             msg.react(MaleEmoji);
             msg.react(FemaleEmoji);
-            reactionPosts.push({ channelId: msg.channel.id, messageId: msg.id, embedId: exampleEmbed.id, reactions: [MaleEmoji, FemaleEmoji] });
-            console.log(reactionPosts);
+            reactionPostsManager.addPost({ channelId: msg.channel.id, messageId: msg.id, embedId: exampleEmbed.id, reactions: [MaleEmoji, FemaleEmoji] });
+            console.log(`Added new reaction post: ${msg.id}`);
         });
-
-
     }
 });
 

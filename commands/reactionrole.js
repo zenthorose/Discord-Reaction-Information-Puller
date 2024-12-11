@@ -1,14 +1,13 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { EmbedBuilder } = require('discord.js');
 const { MaleEmoji, MaleName, FemaleEmoji, FemaleName } = require('../config.json');
-const reactionPosts = require('../reactionPosts');
 
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('reactionrole')
         .setDescription('Send the reaction role message!'),
-    async execute(interaction) {
+    async execute(interaction, reactionPostsManager) {
         const exampleEmbed = new EmbedBuilder()
             .setColor('#17b111')
             .setTitle('React to the corresponding emojis to get personalized notifications!')
@@ -19,6 +18,8 @@ module.exports = {
         await message.react(MaleEmoji);
         await message.react(FemaleEmoji);
 
-        reactionPosts.push({ channelId: message.channel.id, messageId: message.id, embedId: exampleEmbed.id, reactions: [] });
+        reactionPostsManager.addPost({ channelId: message.channel.id, messageId: message.id, embedId: exampleEmbed.id, reactions: [] });
+        console.log(`Added new reaction post via slash command: ${message.id}`);
+        console.log(reactionPostsManager.getAllPosts());
     }
 };
