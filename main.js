@@ -199,7 +199,7 @@ client.on('messageCreate', async message => {
             console.log(reactionPostsManager.getAllPosts());
 
             // Add a slight delay before adding the bot's reactions
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500));
             await msg.react(MaleEmoji);
             await msg.react(FemaleEmoji);
             console.log(`Bot reacted to message: ${msg.id}`);
