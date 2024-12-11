@@ -1,7 +1,10 @@
-module.exports={
-    name:'ping',
-    description: "Ping command",
-    execute(message, args, Discord, client){
-        message.channel.send(`🏓API Latency is ${Math.round(client.ws.ping)}ms`);
-        }
+const { SlashCommandBuilder } = require('@discordjs/builders');
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('ping')
+        .setDescription('Replies with Pong!'),
+    async execute(interaction) {
+        await interaction.reply('Pong!');
+    },
 };

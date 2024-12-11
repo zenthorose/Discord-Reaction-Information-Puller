@@ -11,6 +11,7 @@
   "url": "https://github.com/FoldedLettuce/Discord-Reaction-Role-Bot",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^13.3.1"
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7"
   }
 }
