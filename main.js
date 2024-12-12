@@ -241,7 +241,7 @@ client.on('messageCreate', async message => {
         const exampleEmbed = new EmbedBuilder()
             .setColor('#444444')
             .setTitle('React to the emoji if you are able to make it to this time slot.')
-            .setDescription('Once you have reacted you will be added to the list for the round! If you are unable to make this round please remove your reaction.\n\n'
+            .setDescription(`Once you have reacted you will be added to the list for the round! If you are unable to make this round please remove your reaction.\n\n${MaleEmoji} for ${MaleName}\n${FemaleEmoji} for ${FemaleName}\n`)
             .setTimestamp();
 
         message.channel.send({ embeds: [exampleEmbed] }).then(async msg => {
