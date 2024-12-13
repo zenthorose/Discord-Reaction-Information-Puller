@@ -8,9 +8,9 @@ module.exports = {
         .setDescription('Send the reaction role message!'),
     async execute(interaction, reactionPostsManager) {
         const exampleEmbed = new EmbedBuilder()
-            .setColor('#17b111')
-            .setTitle('React to the corresponding emojis to get personalized notifications!')
-            .setDescription(`Once reacting you will gain your roles!\n\n${MaleEmoji} for ${MaleName}\n${FemaleEmoji} for ${FemaleName}\n`)
+            .setColor('#444444')
+            .setTitle('React to the emoji if you are able to make it to this time slot.')
+            .setDescription(`Once you have reacted you will be added to the list for the round! If you are unable to make this round please remove your reaction.\n\n${MaleEmoji} for ${MaleName}\n${FemaleEmoji} for ${FemaleName}\n`)
             .setTimestamp();
 
         const message = await interaction.reply({ embeds: [exampleEmbed], fetchReply: true });

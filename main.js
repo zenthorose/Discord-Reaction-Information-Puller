@@ -197,7 +197,7 @@ client.on('messageCreate', async message => {
 
                 if (reactions.size > 0) {
                     const embed = new EmbedBuilder()
-                        .setColor('#17b111')
+                        .setColor('#444444')
                         .setTitle(`Reactions for message ID ${messageId}`)
                         .setTimestamp();
 
